@@ -38,7 +38,7 @@
     segment.frame = CGRectMake(50, 50, 200, 50);
     [scroll addSubview:segment];
     
-    [scroll zoomWithScale:2.0];
+    [scroll zoomWithScale:1.0];
 }
 -(void)touchBtn
 {

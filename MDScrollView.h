@@ -18,8 +18,10 @@
     
     BOOL animating;
     
-    CGFloat decceleratingDy;
-    CGFloat decceleratingDx;
+    
+    NSTimer *deccelerationTimer;
+    CGPoint decceleration;
+    CGPoint initialDeccelerationVelociy;
     
     
     UIView *verticalScrollBar;

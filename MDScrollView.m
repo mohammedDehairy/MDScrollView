@@ -52,6 +52,9 @@
         // initial value for minimum and maximum zooming scale
         maximumZoomingScale = 2.0;
         minimumZoomingScale = 0.5;
+        
+        // decceleration
+        //decceleration = 2;
     }
     return self;
 }
@@ -59,7 +62,7 @@
 {
     if(panGesture.state == UIGestureRecognizerStateBegan)
     {
-        
+        [deccelerationTimer invalidate];
     }else if(panGesture.state == UIGestureRecognizerStateChanged)
     {
         // get location of scroll touch
@@ -71,6 +74,7 @@
         
         // scroll by delta y and delta x
         [self scrollWithDY:dy withDX:dx];
+        
     }else
     {
      
@@ -78,18 +82,54 @@
         // bounce back if content view is out of bounds
         [self bounceBack];
         
+        [self deccelerateWithInitialVelocity:[panGesture velocityInView:contentView]];
         
-        
-        CGFloat dy = [panGesture locationInView:contentView].y - previousTouchLocation.y;
-        CGFloat dx = [panGesture locationInView:contentView].x - previousTouchLocation.x;
-        
-        
-        decceleratingDx = dx;
-        decceleratingDy = dy;
     }
     
     
     previousTouchLocation = [panGesture locationInView:contentView];
+}
+-(void)deccelerateWithInitialVelocity:(CGPoint)initialVelocity
+{
+    CGFloat time = 0.001;
+    initialDeccelerationVelociy = initialVelocity;
+    
+    deccelerationTimer = [NSTimer scheduledTimerWithTimeInterval:time target:self selector:@selector(updateDeceleration:) userInfo:nil repeats:YES];
+    
+    
+}
+-(void)updateDeceleration:(NSTimer*)timer
+{
+    CGFloat xV = initialDeccelerationVelociy.x;
+    CGFloat yV = initialDeccelerationVelociy.y;
+    
+    decceleration.x = -1 * initialDeccelerationVelociy.x * 0.02;
+    decceleration.y = -1 * initialDeccelerationVelociy.y * 0.02;
+    
+    [self scrollWithDY:initialDeccelerationVelociy.y*0.001 withDX:initialDeccelerationVelociy.x*0.001];
+    
+    initialDeccelerationVelociy.x += decceleration.x;
+    
+    initialDeccelerationVelociy.y += decceleration.y;
+    
+    
+    
+    if(xV * initialDeccelerationVelociy.x <= 0 )
+    {
+        initialDeccelerationVelociy.x = 0;
+    }
+    
+    if(yV * initialDeccelerationVelociy.y <= 0)
+    {
+        initialDeccelerationVelociy.y = 0;
+    }
+    
+    if(initialDeccelerationVelociy.y == 0 && initialDeccelerationVelociy.x == 0)
+    {
+        [deccelerationTimer invalidate];
+    }
+    
+    
 }
 -(void)pinch:(UIPinchGestureRecognizer*)pinchGesture
 {
@@ -132,7 +172,6 @@
     {
         //any subview other than content view and scroll bars are added to content view
         [contentView addSubview:view];
-        
         
     }else
     {
