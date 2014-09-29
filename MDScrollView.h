@@ -29,6 +29,9 @@
     
     
     CGFloat currentScale;
+    
+    
+    BOOL bounces;
 }
 -(void)setContentSize:(CGSize)contentSize;
 -(void)zoomWithScale:(CGFloat)scale;

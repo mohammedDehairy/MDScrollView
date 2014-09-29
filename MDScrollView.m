@@ -103,10 +103,10 @@
     CGFloat xV = initialDeccelerationVelociy.x;
     CGFloat yV = initialDeccelerationVelociy.y;
     
-    decceleration.x = -1 * initialDeccelerationVelociy.x * 0.02;
-    decceleration.y = -1 * initialDeccelerationVelociy.y * 0.02;
+    decceleration.x = -1 * initialDeccelerationVelociy.x * 0.01;
+    decceleration.y = -1 * initialDeccelerationVelociy.y * 0.01;
     
-    [self scrollWithDY:initialDeccelerationVelociy.y*0.001 withDX:initialDeccelerationVelociy.x*0.001];
+    BOOL hitedge = [self scrollWithDY:initialDeccelerationVelociy.y*0.001 withDX:initialDeccelerationVelociy.x*0.001];
     
     initialDeccelerationVelociy.x += decceleration.x;
     
@@ -127,6 +127,12 @@
     if(initialDeccelerationVelociy.y == 0 && initialDeccelerationVelociy.x == 0)
     {
         [deccelerationTimer invalidate];
+    }
+    
+    if(hitedge)
+    {
+        [deccelerationTimer invalidate];
+        [self bounceBack];
     }
     
     
@@ -301,6 +307,11 @@
 }
 -(void)bounceBack
 {
+    if(!bounces)
+    {
+        return;
+    }
+    
     CGRect contentFrame = contentView.frame;
     CGRect vScrollFrame = verticalScrollBar.frame;
     CGRect hScrollFrame = horizontalScrollBar.frame;
@@ -308,10 +319,10 @@
     // the time it takes content view to bounce bake when its origin get out of bounds of scroll view is inversely proportional to the distance from the edge
     
     // bounceTime = timeFactor / (distance from the edge + additionFactor)
-    CGFloat timeFactor = 1.0;
+    CGFloat timeFactor = 1.5;
     
     // the addition factor is necessary to avoid dividing by zero or very small number
-    CGFloat additionFactor = 50;
+    CGFloat additionFactor = 20;
     
     // spring damping factor and initial spring velocity
     CGFloat springDampingFactor = 10;
@@ -430,6 +441,7 @@
         return NO;
     }
     
+    
     BOOL hitEdge = NO;
     
     CGRect scaledContentRect = [self scaledContentRect];
@@ -438,17 +450,32 @@
     CGRect contentFrame = scaledContentRect;
     
     CGFloat factor = 0.1 * (scaledContentRect.origin.y + dy);
+    
+    
     if(scaledContentRect.origin.y + dy > 0)
     {
+        if(bounces)
+        {
+            dy /= factor;
+            hitEdge = YES;
+        }else
+        {
+            dy = 0;
+        }
         
-        dy /= factor;
-        hitEdge = YES;
         
     }else if (scaledContentRect.origin.y + dy < self.bounds.size.height-scaledContentRect.size.height)
     {
-        factor = 0.1 * (self.bounds.size.height-scaledContentRect.size.height - scaledContentRect.origin.y - dy);
-        dy /= factor;
-        hitEdge = YES;
+        if(bounces)
+        {
+            factor = 0.1 * (self.bounds.size.height-scaledContentRect.size.height - scaledContentRect.origin.y - dy);
+            dy /= factor;
+            hitEdge = YES;
+        }else
+        {
+            dy = 0;
+        }
+        
     }
     
     contentFrame.origin.y += dy;
@@ -461,13 +488,27 @@
     
     if(scaledContentRect.origin.x + dx > 0)
     {
-        dx /= xfactor;
-        hitEdge = YES;
+        if(bounces)
+        {
+            dx /= xfactor;
+            hitEdge = YES;
+        }else
+        {
+            dx = 0;
+        }
+        
     }else if (scaledContentRect.origin.x + dx < self.bounds.size.width-scaledContentRect.size.width)
     {
-        xfactor = 0.1 * (self.bounds.size.width-scaledContentRect.size.width-scaledContentRect.origin.x - dx);
-        dx /= xfactor;
-        hitEdge = YES;
+        if(bounces)
+        {
+            xfactor = 0.1 * (self.bounds.size.width-scaledContentRect.size.width-scaledContentRect.origin.x - dx);
+            dx /= xfactor;
+            hitEdge = YES;
+        }else
+        {
+            dx = 0;
+        }
+        
     }
     contentFrame.origin.x += dx;
     
